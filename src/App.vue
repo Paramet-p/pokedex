@@ -1,85 +1,85 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { ref } from 'vue'
+const pokemons = ref([])
+const error = ref(null)
+const isLoading = ref(true)
+
+const fetchPokemon = async () => {
+  try {
+    isLoading.value = true
+    const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+
+    console.log(data)
+    for (const pokemon of data.results) {
+      // pokemons.value.push(pokemon)
+      const pokemonResponse = await fetch(pokemon.url)
+      if (!pokemonResponse.ok) {
+        throw new Error('Network response was not ok for ' + pokemon.name)
+      }
+      const pokemonData = await pokemonResponse.json()
+      pokemons.value.push({
+        name: pokemon.name,
+        number: pokemonData.id,
+        image: pokemonData.sprites.front_default,
+        types: pokemonData.types.map(type => type.type.name)
+      })
+    }
+    console.log(pokemons.value)
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isLoading.value = false
+  }
+}
+fetchPokemon()
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
+  <div>
+    <h1>pokedex</h1>
+    <div class="pokemon-card-container">
+      <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.name">
+        <div class="pokemon-image">
+          <img :src="pokemon.image" />
+        </div>
+        <h4>#{{ pokemon.number.toString().padStart(4, '0') }}</h4>
+        <h2>{{ pokemon.name }}</h2>
+        <div class="pokemon-types">
+          <h3 v-for="(type, index) in pokemon.types" :key="index">{{ type }}</h3>
+        </div>
+      </div>
     </div>
-  </header>
-
-  <RouterView />
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.pokemon-card-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 20px;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.pokemon-card {
+  background-color: #222;
+  border-radius: 8px;
+  padding: 10px;
+  width: 200px;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.pokemon-image {
+  display: flex;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.pokemon-types {
+  display: flex;
+  gap: 10px;
 }
 </style>
