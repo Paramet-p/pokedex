@@ -5,6 +5,10 @@ const nextUrl = ref(null)
 const error = ref(null)
 const isLoading = ref(true)
 
+const firstLetterUpperCase = (str) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
 const fetchPokemon = async (url) => {
   try {
     isLoading.value = true
@@ -50,9 +54,9 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
             <img :src="pokemon.image" height="140px" width="140px" />
           </div>
           <h4>#{{ pokemon.number.toString().padStart(4, '0') }}</h4>
-          <h2>{{ pokemon.name }}</h2>
+          <h2>{{ firstLetterUpperCase(pokemon.name) }}</h2>
           <div class="pokemon-types">
-            <h3 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type}`">{{ type }}</h3>
+            <h4 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type}`">{{ firstLetterUpperCase(type) }}</h4>
           </div>
         </div>
       </div>
@@ -109,7 +113,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #719f3f;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-dragon {
   display: flex;
@@ -117,7 +121,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background: linear-gradient(#53a4cf 50%, #f16e57 50%);
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-fairy {
   display: flex;
@@ -125,7 +129,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #fdb9e9;
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-fire {
   display: flex;
@@ -133,7 +137,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #fd7d24;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-ghost {
   display: flex;
@@ -141,7 +145,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #7b62a3;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-ground {
   display: flex;
@@ -149,7 +153,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background: linear-gradient(#f7de3f 50%, #ab9842 50%);
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-normal {
   display: flex;
@@ -158,7 +162,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #a4acaf;
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-psychic {
   display: flex;
@@ -166,7 +170,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #f366b9;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-steel {
   display: flex;
@@ -174,7 +178,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #9eb7b8;
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-dark {
   display: flex;
@@ -182,7 +186,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #707070;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-electric {
   display: flex;
@@ -190,7 +194,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #eed535;
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-fighting {
   display: flex;
@@ -198,7 +202,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #d56723;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-flying {
   display: flex;
@@ -206,7 +210,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background: linear-gradient(#3dc7ef 50%, #bdb9b8 50%);
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-grass {
   display: flex;
@@ -214,7 +218,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #9bcc50;
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-ice {
   display: flex;
@@ -222,7 +226,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #51c4e7;
   color: black;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-poison {
   display: flex;
@@ -230,7 +234,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #b97fc8;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-rock {
   display: flex;
@@ -238,7 +242,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #a38c21;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 .pokemon-type-water {
   display: flex;
@@ -246,7 +250,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   background-color: #4592c4;
   color: white;
   border-radius: 5px;
-  width: 80px;
+  width: 85px;
 }
 
 .load-more-button {
