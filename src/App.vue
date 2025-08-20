@@ -26,7 +26,7 @@ const fetchPokemon = async (url) => {
       pokemons.value.push({
         name: pokemonData.name,
         number: pokemonData.id,
-        image: pokemonData.sprites.front_default,
+        image: pokemonData.sprites.other['official-artwork'].front_default,
         types: pokemonData.types.map(type => type.type.name)
       })
     }
@@ -47,7 +47,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
       <div class="pokemon-card-container">
         <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.name">
           <div class="pokemon-image">
-            <img :src="pokemon.image" />
+            <img :src="pokemon.image" height="140px" width="140px" />
           </div>
           <h4>#{{ pokemon.number.toString().padStart(4, '0') }}</h4>
           <h2>{{ pokemon.name }}</h2>
@@ -101,6 +101,13 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 .pokemon-types {
   display: flex;
   gap: 10px;
+}
+
+.pokemon-type.normal {
+  background-color: #a4acaf;
+  color: black;
+  padding: 5px;
+  border-radius: 5px;
 }
 
 .load-more-button {
