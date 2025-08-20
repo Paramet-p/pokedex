@@ -52,7 +52,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
           <h4>#{{ pokemon.number.toString().padStart(4, '0') }}</h4>
           <h2>{{ pokemon.name }}</h2>
           <div class="pokemon-types">
-            <h3 v-for="(type, index) in pokemon.types" :key="index">{{ type }}</h3>
+            <h3 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type}`">{{ type }}</h3>
           </div>
         </div>
       </div>
@@ -103,11 +103,150 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   gap: 10px;
 }
 
-.pokemon-type.normal {
+.pokemon-type-bug {
+  display: flex;
+  justify-content: center;
+  background-color: #719f3f;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-dragon {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(#53a4cf 50%, #f16e57 50%);
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-fairy {
+  display: flex;
+  justify-content: center;
+  background-color: #fdb9e9;
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-fire {
+  display: flex;
+  justify-content: center;
+  background-color: #fd7d24;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-ghost {
+  display: flex;
+  justify-content: center;
+  background-color: #7b62a3;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-ground {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(#f7de3f 50%, #ab9842 50%);
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-normal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: #a4acaf;
   color: black;
-  padding: 5px;
   border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-psychic {
+  display: flex;
+  justify-content: center;
+  background-color: #f366b9;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-steel {
+  display: flex;
+  justify-content: center;
+  background-color: #9eb7b8;
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-dark {
+  display: flex;
+  justify-content: center;
+  background-color: #707070;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-electric {
+  display: flex;
+  justify-content: center;
+  background-color: #eed535;
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-fighting {
+  display: flex;
+  justify-content: center;
+  background-color: #d56723;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-flying {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(#3dc7ef 50%, #bdb9b8 50%);
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-grass {
+  display: flex;
+  justify-content: center;
+  background-color: #9bcc50;
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-ice {
+  display: flex;
+  justify-content: center;
+  background-color: #51c4e7;
+  color: black;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-poison {
+  display: flex;
+  justify-content: center;
+  background-color: #b97fc8;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-rock {
+  display: flex;
+  justify-content: center;
+  background-color: #a38c21;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
+}
+.pokemon-type-water {
+  display: flex;
+  justify-content: center;
+  background-color: #4592c4;
+  color: white;
+  border-radius: 5px;
+  width: 80px;
 }
 
 .load-more-button {
