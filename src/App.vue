@@ -53,7 +53,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
           <div class="pokemon-image">
             <img :src="pokemon.image" height="140px" width="140px" />
           </div>
-          <h4>#{{ pokemon.number.toString().padStart(4, '0') }}</h4>
+          <h5>#{{ pokemon.number.toString().padStart(4, '0') }}</h5>
           <h2>{{ firstLetterUpperCase(pokemon.name) }}</h2>
           <div class="pokemon-types">
             <h4 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type}`">{{ firstLetterUpperCase(type) }}</h4>
@@ -91,6 +91,19 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   border-radius: 8px;
   padding: 10px;
   width: 200px;
+}
+.pokemon-card:hover {
+  background-color: #333;
+  transform: translateY(-2px);
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  color: white;
+  cursor: pointer;
+}
+.pokemon-card h5 {
+  color: #707070;
+}
+.pokemon-card h2 {
+  font-weight: 500;
 }
 
 .pokemon-image {
