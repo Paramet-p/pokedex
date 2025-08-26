@@ -27,12 +27,7 @@ const fetchPokemon = async (url) => {
         throw new Error('Network response was not ok')
       }
       const pokemonData = await res.json()
-      pokemons.value.push({
-        name: pokemonData.name,
-        number: pokemonData.id,
-        image: pokemonData.sprites.other['official-artwork'].front_default,
-        types: pokemonData.types.map(type => type.type.name)
-      })
+      pokemons.value.push(pokemonData)
     }
   } catch (err) {
     error.value = err.message
@@ -49,14 +44,14 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
     <h1>pokedex</h1>
     <div class="pokemon-list-wrapper">
       <div class="pokemon-card-container">
-        <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.name">
+        <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.id">
           <div class="pokemon-image">
-            <img :src="pokemon.image" height="140px" width="140px" />
+            <img :src="pokemon.sprites.other['official-artwork'].front_default" height="140px" width="140px" />
           </div>
-          <h5>#{{ pokemon.number.toString().padStart(4, '0') }}</h5>
+          <h5>#{{ pokemon.id.toString().padStart(4, '0') }}</h5>
           <h2>{{ firstLetterUpperCase(pokemon.name) }}</h2>
           <div class="pokemon-types">
-            <h4 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type}`">{{ firstLetterUpperCase(type) }}</h4>
+            <h4 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`">{{ firstLetterUpperCase(type.type.name) }}</h4>
           </div>
         </div>
       </div>
