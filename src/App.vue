@@ -5,19 +5,29 @@ const nextUrl = ref(null)
 const error = ref(null)
 const isLoadingPokemons = ref(true)
 const isLoadingpokemonPopup = ref(true)
+const isLoadingAbility = ref(true)
 const showPopup = ref(false)
 const selectedPokemon = ref(null)
 const selectedPokemonSpecies = ref(null)
+const selectedPokemonAbility = ref(null)
 
 const showPokemonDetails = (pokemon) => {
-    selectedPokemon.value = pokemon
-    showPopup.value = true
+  selectedPokemon.value = pokemon
+  showPopup.value = true
+  fetchPokemonSpecies()
 }
 
-const fetchPokemonSpecies = async (id) => {
+const closePokemonDetails = () => {
+  showPopup.value = false
+  selectedPokemon.value = null
+  selectedPokemonSpecies.value = null
+  selectedPokemonAbility.value = null
+}
+
+const fetchPokemonSpecies = async () => {
   try {
     isLoadingpokemonPopup.value = true
-    const response = fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`)
+    const response = await fetch(selectedPokemon.value.species.url)
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
@@ -25,8 +35,26 @@ const fetchPokemonSpecies = async (id) => {
     selectedPokemonSpecies.value = data
   } catch (err) {
     error.value = err.message
+    throw new Error(err.message)
   } finally {
     isLoadingpokemonPopup.value = false
+  }
+}
+
+const fetchAbility = async () => {
+  try {
+    isLoadingAbility.value = true
+    const response = await fetch(selectedPokemon.value.abilities[0].ability.url)
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+    selectedPokemonAbility.value = data
+  } catch (err) {
+    error.value = err.message
+    throw new Error(err.message)
+  } finally {
+    isLoadingAbility.value = false
   }
 }
 
@@ -92,7 +120,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 
   <div v-if="showPopup" class="pokemon-popup-overlay">
     <div class="pokemon-popup">
-      <button class="close-button" @click="showPopup = false">X</button>
+      <button class="close-button" @click="closePokemonDetails">X</button>
       <div v-if="isLoadingpokemonPopup" style="color: white; font-size: 1.5rem;">
         Loading...
       </div>
@@ -101,26 +129,59 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
         <h1 style="color: #bbb">#{{ selectedPokemon.id.toString().padStart(4, '0') }}</h1>
       </div>
       <div v-if="selectedPokemon && !isLoadingpokemonPopup">
-        <div class="popup-about">
+        <div class="popup-content">
           <div class="popup-image">
             <img :src="selectedPokemon.sprites.other['official-artwork'].front_default" :alt="selectedPokemon.name"
               width="250px" />
           </div>
-          <div>
-            <h4>Height: {{ selectedPokemon.height / 10 }} m</h4>
-            <h4>Weight: {{ selectedPokemon.weight / 10 }} kg</h4>
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="popup-about">
+              <div>
+                <div style="margin-bottom: 20px;">
+                  <h4>Height</h4>
+                  <h3>{{ (selectedPokemon.height / 10).toFixed(1) }} m</h3>
+                </div>
+                <div>
+                  <h4>Weight</h4>
+                  <h3>{{ (selectedPokemon.weight / 10).toFixed(1) }} kg</h3>
+                </div>
+              </div>
+              <div>
+                <div style="margin-bottom: 20px;">
+                  <h4>Category</h4>
+                  <h3>{{ selectedPokemonSpecies.genera[7].genus.slice(0, -7) }}</h3>
+                </div>
+                <div>
+                  <h4>Abilities</h4>
+                  <div style="display: flex; align-items: baseline; gap: 10px;">
+                    <h3 style="cursor: pointer" @click="fetchAbility">
+                      {{ firstLetterUpperCase(selectedPokemon.abilities[0].ability.name) }}
+                    </h3>
+                    <div class="circle-icon" @click="fetchAbility">?</div>
+                  </div>
+                </div>
+              </div>
+              <div class="popup-ability-info" :class="{ 'show': selectedPokemonAbility && !isLoadingAbility }">
+                <button @click="selectedPokemonAbility = null">
+                  Close
+                </button>
+                <h5>Ability Info</h5>
+                <h3>
+                  {{ firstLetterUpperCase(selectedPokemon.abilities[0].ability.name) }}
+                </h3>
+                <h4>
+                  {{ selectedPokemonAbility?.flavor_text_entries?.[selectedPokemonAbility.flavor_text_entries.length -
+                    1]?.flavor_text ?? 'No Details' }}
+                </h4>
+              </div>
+            </div>
+            <h3 style="text-align: start;">Type</h3>
+            <div class="pokemon-types">
+              <h4 v-for="(type, index) in selectedPokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`">
+                {{ firstLetterUpperCase(type.type.name) }}
+              </h4>
+            </div>
           </div>
-        </div>
-        <h2>{{ firstLetterUpperCase(selectedPokemon.name) }}</h2>
-        <h5>#{{ selectedPokemon.id.toString().padStart(4, '0') }}</h5>
-        <h4>Height: {{ selectedPokemon.height / 10 }} m</h4>
-        <h4>Weight: {{ selectedPokemon.weight / 10 }} kg</h4>
-        <h4>Height: {{ selectedPokemon.height / 10 }} m</h4>
-        <h4>Weight: {{ selectedPokemon.weight / 10 }} kg</h4>
-        <div class="pokemon-types popup-types">
-          <h4 v-for="(type, index) in selectedPokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`">
-            {{ firstLetterUpperCase(type.type.name) }}
-          </h4>
         </div>
       </div>
     </div>
@@ -155,7 +216,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 .pokemon-card:hover {
   background-color: #333;
   transform: translateY(-2px);
-  transition: background-color 0.3s, box-shadow 0.3s, transform 0.3s;
+  transition: background-color 0.3s ease-out, transform 0.3s ease-out;
   color: white;
   cursor: pointer;
 }
@@ -382,7 +443,6 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   padding: 20px;
   border-radius: 10px;
   position: relative;
-  width: 800px;
   text-align: center;
 }
 
@@ -405,7 +465,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   gap: 15px;
 }
 
-.popup-about {
+.popup-content {
   display: flex;
   gap: 20px;
   align-items: center;
@@ -415,22 +475,90 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 
 .popup-image {
   background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 6px;
   width: 250px;
   height: 250px;
 }
 
-.popup-content h2 {
+.popup-about {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  text-align: left;
+  background-color: #30a7d7;
+  border-radius: 10px;
+  padding: 15px;
+  width: 350px;
+}
+
+.popup-about h4 {
+  color: white;
+}
+
+.popup-about h3 {
+  color: black;
+}
+
+.popup-ability-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: #313131;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  padding: 15px;
+  padding-top: 10px;
+  transition: opacity 0.3s ease-out;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.popup-ability-info.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup-ability-info h5 {
+  color: #616161;
   margin-bottom: 5px;
+  font-weight: 500;
 }
 
-.popup-content h5 {
-  margin-top: 0;
-  color: #a4acaf;
+.popup-ability-info h3 {
+  color: #ffffff;
 }
 
-.popup-content p {
-  margin: 5px 0;
+.popup-ability-info h4 {
+  color: #f2f2f2;
+}
+
+.popup-ability-info button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #000000;
+  border: none;
+  color: #ffffff;
+  border-radius: 0 10px 0 10px;
+  padding: 10px;
+  padding-left: 15px;
+  padding-right: 15px;
+  cursor: pointer;
+}
+
+.circle-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  width: fit-content;
+  border-radius: 100%;
+  font-size: 12px;
+  font-weight: 500;
+  color: #30a7d7;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
 }
 </style>
