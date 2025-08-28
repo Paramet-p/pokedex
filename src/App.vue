@@ -125,7 +125,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
       </div>
       <div class="popup-header" v-if="selectedPokemon && !isLoadingpokemonPopup">
         <h1>{{ firstLetterUpperCase(selectedPokemon.name) }}</h1>
-        <h1 style="color: #bbb">#{{ selectedPokemon.id.toString().padStart(4, '0') }}</h1>
+        <h1 style="color: #616161">#{{ selectedPokemon.id.toString().padStart(4, '0') }}</h1>
       </div>
       <div v-if="selectedPokemon && !isLoadingpokemonPopup">
         <div class="popup-content">
@@ -195,6 +195,11 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   padding: 20px;
   gap: 20px;
 }
+.main-container h1 {
+  color: #919191;
+  font-weight: 500;
+  font-size: 2.5rem;
+}
 .pokemon-list-wrapper {
   display: flex;
   flex-direction: column;
@@ -209,31 +214,33 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 }
 
 .pokemon-card {
-  background-color: #222;
+  background-color: #ffffff;
   border-radius: 8px;
   padding: 10px;
   width: 200px;
 }
 
 .pokemon-card:hover {
-  background-color: #333;
+  /* background-color: rgba(0, 0, 0, 0.1); */
   transform: translateY(-2px);
   transition: background-color 0.3s ease-out, transform 0.3s ease-out;
-  color: white;
+  /* color: white; */
   cursor: pointer;
 }
 
 .pokemon-card h5 {
-  color: #707070;
+  color: #919191;
+  font-weight: 500;
 }
 
 .pokemon-card h2 {
+  color: #313131;
   font-weight: 500;
 }
 
 .pokemon-image {
   display: flex;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f2f2f2;
   border-radius: 8px;
   justify-content: center;
   align-items: center;
@@ -440,8 +447,8 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 }
 
 .pokemon-popup {
-  background: #333;
-  color: white;
+  background: #ffffff;
+  color: #212121;
   padding: 20px;
   border-radius: 10px;
   position: relative;
@@ -454,7 +461,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   right: 10px;
   background: transparent;
   border: none;
-  color: white;
+  color: #313131;
   font-size: 1.2rem;
   cursor: pointer;
 }
@@ -476,7 +483,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 }
 
 .popup-image {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f2f2f2;
   border-radius: 6px;
   width: 250px;
   height: 250px;
