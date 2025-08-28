@@ -94,7 +94,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 
 <template>
   <div class="main-container">
-    <h1>pokedex</h1>
+    <h1>Pokedex</h1>
     <div class="pokemon-list-wrapper">
       <div class="pokemon-card-container">
         <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.id" @click="showPokemonDetails(pokemon)">
@@ -117,7 +117,6 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
       </button>
     </div>
   </div>
-
   <div v-if="showPopup" class="pokemon-popup-overlay">
     <div class="pokemon-popup">
       <button class="close-button" @click="closePokemonDetails">X</button>
@@ -190,9 +189,12 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 
 <style scoped>
 .main-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 20px;
+  gap: 20px;
 }
-
 .pokemon-list-wrapper {
   display: flex;
   flex-direction: column;
