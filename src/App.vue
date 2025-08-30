@@ -219,7 +219,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
         </div>
         <!-- Evolutions Content -->
         <div class="evolutions-content" v-else-if="selectedDetailsTab === 'evolutions'">
-          evolutions content
+          <PokeballSpinner secondaryColor="#a4a4a4" />
         </div>
       </div>
     </div>

@@ -1,8 +1,21 @@
+<script setup>
+defineProps({
+    primaryColor: {
+        type: String,
+        default: '#4f4f4f'
+    },
+    secondaryColor: {
+        type: String,
+        default: '#ffffff'
+    }
+});
+</script>
+
 <template>
-    <div class="pokeball">
-        <div class="pokeball-line">
-            <div class="pokeball-circle">
-                <div class="pokeball-circle-inner"></div>
+    <div class="pokeball" :style="{ backgroundColor: primaryColor }">
+        <div class="pokeball-line" :style="{ backgroundColor: secondaryColor }">
+            <div class="pokeball-circle" :style="{ backgroundColor: secondaryColor }">
+                <div class="pokeball-circle-inner" :style="{ backgroundColor: primaryColor }"></div>
             </div>
         </div>
     </div>
