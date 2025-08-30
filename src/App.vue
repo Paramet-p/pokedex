@@ -106,7 +106,18 @@ const fetchEvolutions = async () => {
     error.value = err.message
     throw new Error(err.message)
   } finally {
+    console.log('exiting fetchEvolutions')
     isLoadingEvolutions.value = false
+  }
+}
+
+const selectDetailTabs = (tab) => {
+  selectedDetailsTab.value = tab
+  if (tab === 'stats') {
+    selectedPokemonEvolutionsDetails.value = []
+    selectedPokemonEvolutionsDetails.value = []
+  } else if (tab === 'evolutions') {
+    fetchEvolutions()
   }
 }
 
@@ -243,11 +254,11 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
         <!-- Details Tabs -->
         <div class="details-tabs">
           <!-- Stats Tab -->
-          <button :class="{ 'active': selectedDetailsTab === 'stats' }" @click="selectedDetailsTab = 'stats'">
+          <button :class="{ 'active': selectedDetailsTab === 'stats' }" @click="selectDetailTabs('stats')">
             Stats
           </button>
           <!-- Evolutions Tab -->
-          <button :class="{ 'active': selectedDetailsTab === 'evolutions' }" @click="fetchEvolutions">
+          <button :class="{ 'active': selectedDetailsTab === 'evolutions' }" @click="selectDetailTabs('evolutions')">
             Evolutions
           </button>
         </div>
