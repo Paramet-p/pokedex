@@ -8,11 +8,14 @@ const error = ref(null)
 const isLoadingPokemons = ref(true)
 const isLoadingpokemonPopup = ref(true)
 const isLoadingAbility = ref(true)
+const isLoadingEvolutions = ref(true)
 const showPopup = ref(false)
 const selectedPokemon = ref(null)
 const selectedPokemonSpecies = ref(null)
 const selectedPokemonAbility = ref(null)
 const selectedDetailsTab = ref('stats')
+const selectedPokemonEvolutions = ref(null)
+const selectedPokemonEvolutionsDetails = ref([])
 
 const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
 
@@ -28,6 +31,8 @@ const closePokemonDetails = () => {
   selectedPokemonSpecies.value = null
   selectedPokemonAbility.value = null
   selectedDetailsTab.value = 'stats'
+  selectedPokemonEvolutions.value = []
+  selectedPokemonEvolutionsDetails.value = []
 }
 
 const fetchPokemonSpecies = async () => {
@@ -61,6 +66,47 @@ const fetchAbility = async () => {
     throw new Error(err.message)
   } finally {
     isLoadingAbility.value = false
+  }
+}
+
+const fetchEvolutions = async () => {
+  try {
+    isLoadingEvolutions.value = true
+    selectedDetailsTab.value = 'evolutions'
+    const response = await fetch(selectedPokemonSpecies.value.evolution_chain.url)
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+    selectedPokemonEvolutions.value = data
+
+    const evolutionUrls = []
+    const chain = data.chain
+
+    evolutionUrls.push(chain.species.url)
+    if (chain.evolves_to.length > 0) {
+      evolutionUrls.push(chain.evolves_to[0].species.url)
+      if (chain.evolves_to[0].evolves_to.length > 0) {
+        evolutionUrls.push(chain.evolves_to[0].evolves_to[0].species.url)
+      }
+    }
+
+    const evolutionPromises = evolutionUrls.map(url => fetch(url))
+    const evolutionResponses = await Promise.all(evolutionPromises)
+
+    selectedPokemonEvolutionsDetails.value = []
+    for (const res of evolutionResponses) {
+      if (!res.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const evoData = await res.json()
+      selectedPokemonEvolutionsDetails.value.push(evoData)
+    }
+  } catch (err) {
+    error.value = err.message
+    throw new Error(err.message)
+  } finally {
+    isLoadingEvolutions.value = false
   }
 }
 
@@ -127,10 +173,8 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   <div v-if="showPopup" class="pokemon-popup-overlay">
     <div class="pokemon-popup">
       <button class="close-button" @click="closePokemonDetails">X</button>
-      <!-- <div v-if="isLoadingpokemonPopup" style="color: white; font-size: 1.5rem;">
-        Loading...
-      </div> -->
-      <div v-if="isLoadingpokemonPopup" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+      <div v-if="isLoadingpokemonPopup"
+        style="display: flex; justify-content: center; align-items: center; height: 100%;">
         <PokeballSpinner />
       </div>
       <div class="popup-header" v-if="selectedPokemon && !isLoadingpokemonPopup">
@@ -198,10 +242,12 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
       <div v-if="selectedPokemon && !isLoadingpokemonPopup">
         <!-- Details Tabs -->
         <div class="details-tabs">
-          <button :class="{'active': selectedDetailsTab === 'stats'}" @click="selectedDetailsTab = 'stats'" >
+          <!-- Stats Tab -->
+          <button :class="{ 'active': selectedDetailsTab === 'stats' }" @click="selectedDetailsTab = 'stats'">
             Stats
           </button>
-          <button :class="{'active': selectedDetailsTab === 'evolutions'}" @click="selectedDetailsTab = 'evolutions'">
+          <!-- Evolutions Tab -->
+          <button :class="{ 'active': selectedDetailsTab === 'evolutions' }" @click="fetchEvolutions">
             Evolutions
           </button>
         </div>
@@ -219,7 +265,14 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
         </div>
         <!-- Evolutions Content -->
         <div class="evolutions-content" v-else-if="selectedDetailsTab === 'evolutions'">
-          <PokeballSpinner secondaryColor="#a4a4a4" />
+          <div v-if="isLoadingEvolutions">
+            <PokeballSpinner secondaryColor="#a4a4a4" />
+          </div>
+          <div v-if="selectedPokemonEvolutionsDetails">
+            <div v-for="pokemon in selectedPokemonEvolutionsDetails" :key="pokemon.id">
+              {{ firstLetterUpperCase(pokemon.name) }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
