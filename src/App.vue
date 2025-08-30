@@ -10,6 +10,9 @@ const showPopup = ref(false)
 const selectedPokemon = ref(null)
 const selectedPokemonSpecies = ref(null)
 const selectedPokemonAbility = ref(null)
+const selectedDetailsTab = ref('stats')
+
+const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
 
 const showPokemonDetails = (pokemon) => {
   selectedPokemon.value = pokemon
@@ -22,6 +25,7 @@ const closePokemonDetails = () => {
   selectedPokemon.value = null
   selectedPokemonSpecies.value = null
   selectedPokemonAbility.value = null
+  selectedDetailsTab.value = 'stats'
 }
 
 const fetchPokemonSpecies = async () => {
@@ -117,6 +121,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
       </button>
     </div>
   </div>
+  <!-- popup -->
   <div v-if="showPopup" class="pokemon-popup-overlay">
     <div class="pokemon-popup">
       <button class="close-button" @click="closePokemonDetails">X</button>
@@ -160,6 +165,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
                   </div>
                 </div>
               </div>
+              <!-- Ability Info -->
               <div class="popup-ability-info" :class="{ 'show': selectedPokemonAbility && !isLoadingAbility }">
                 <button @click="selectedPokemonAbility = null">
                   Close
@@ -170,7 +176,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
                 </h3>
                 <h4>
                   {{ selectedPokemonAbility?.flavor_text_entries?.[selectedPokemonAbility.flavor_text_entries.length -
-                    1]?.flavor_text ?? 'No Details' }}
+                    1]?.flavor_text ?? 'No Info' }}
                 </h4>
               </div>
             </div>
@@ -181,6 +187,34 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
               </h4>
             </div>
           </div>
+        </div>
+      </div>
+      <!-- Details -->
+      <div>
+        <!-- Details Tabs -->
+        <div class="details-tabs">
+          <button :class="{'active': selectedDetailsTab === 'stats'}" @click="selectedDetailsTab = 'stats'" >
+            Stats
+          </button>
+          <button :class="{'active': selectedDetailsTab === 'evolutions'}" @click="selectedDetailsTab = 'evolutions'">
+            Evolutions
+          </button>
+        </div>
+        <!-- Stats Content -->
+        <div class="stats-content" v-if="selectedDetailsTab === 'stats'">
+          <div style="display: flex;">
+            <div v-for="stat, index in statNames" :key="stat">
+              <div class="stat-bar" v-for="value in (15 - Math.ceil(selectedPokemon.stats[index].base_stat / 17))"
+                :key="value"></div>
+              <div class="stat-bar" style="background-color: #30a7d7;"
+                v-for="value in Math.ceil(selectedPokemon.stats[index].base_stat / 17)" :key="value"></div>
+              <span style="font-weight: 500;">{{ stat }}</span>
+            </div>
+          </div>
+        </div>
+        <!-- Evolutions Content -->
+        <div class="evolutions-content" v-else-if="selectedDetailsTab === 'evolutions'">
+          evolutions content
         </div>
       </div>
     </div>
@@ -195,11 +229,13 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   padding: 20px;
   gap: 20px;
 }
+
 .main-container h1 {
   color: #919191;
   font-weight: 500;
   font-size: 2.5rem;
 }
+
 .pokemon-list-wrapper {
   display: flex;
   flex-direction: column;
@@ -474,6 +510,10 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   gap: 15px;
 }
 
+.popup-header h1 {
+  font-weight: 500;
+}
+
 .popup-content {
   display: flex;
   gap: 20px;
@@ -569,5 +609,56 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   width: 15px;
   height: 15px;
   cursor: pointer;
+}
+
+.details-tabs {
+  display: flex;
+  gap: 1px;
+}
+
+.details-tabs button {
+  border: none;
+  border-radius: 10px 10px 0 0;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #d0d0d0;
+  color: #515151;
+}
+
+.details-tabs button:hover {
+  background-color: #c4c4c4;
+  color: #000000;
+  transition: background-color 0.3s ease-out, color 0.3s ease-out;
+}
+
+.details-tabs button.active {
+  background-color: #a4a4a4;
+  color: #000000;
+}
+
+.stats-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #a4a4a4;
+  border-radius: 0 10px 10px 10px;
+  padding: 5px;
+  height: 300px;
+}
+
+.stat-bar {
+  background-color: #ffffff;
+  height: 10px;
+  width: 80px;
+  margin: 5px;
+}
+
+.evolutions-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #a4a4a4;
+  border-radius: 0 10px 10px 10px;
+  height: 300px;
 }
 </style>
