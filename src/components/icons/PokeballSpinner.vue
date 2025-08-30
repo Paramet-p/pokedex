@@ -7,15 +7,47 @@ defineProps({
     secondaryColor: {
         type: String,
         default: '#ffffff'
+    },
+    size: {
+        type: String,
+        default: '51px'
     }
 });
 </script>
 
 <template>
-    <div class="pokeball" :style="{ backgroundColor: primaryColor }">
-        <div class="pokeball-line" :style="{ backgroundColor: secondaryColor }">
-            <div class="pokeball-circle" :style="{ backgroundColor: secondaryColor }">
-                <div class="pokeball-circle-inner" :style="{ backgroundColor: primaryColor }"></div>
+    <div 
+        class="pokeball" 
+        :style="{ 
+            backgroundColor: primaryColor, 
+            width: size, 
+            height: size 
+        }"
+    >
+        <div 
+            class="pokeball-line" 
+            :style="{ 
+                backgroundColor: secondaryColor,
+                width: size,
+                height: `calc(${size} * 0.137)`
+            }"
+        >
+            <div 
+                class="pokeball-circle" 
+                :style="{ 
+                    backgroundColor: secondaryColor,
+                    width: `calc(${size} * 0.41)`,
+                    height: `calc(${size} * 0.41)`
+                }"
+            >
+                <div 
+                    class="pokeball-circle-inner" 
+                    :style="{ 
+                        backgroundColor: primaryColor,
+                        width: `calc(${size} * 0.215)`,
+                        height: `calc(${size} * 0.215)`
+                    }"
+                ></div>
             </div>
         </div>
     </div>

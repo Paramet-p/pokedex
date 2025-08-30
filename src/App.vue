@@ -22,6 +22,10 @@ const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
 const showPokemonDetails = (pokemon) => {
   selectedPokemon.value = pokemon
   showPopup.value = true
+  selectedDetailsTab.value = 'stats'
+  selectedPokemonEvolutions.value = null
+  selectedPokemonEvolutionsDetails.value = []
+  selectedPokemonAbility.value = null
   fetchPokemonSpecies()
 }
 
@@ -31,7 +35,7 @@ const closePokemonDetails = () => {
   selectedPokemonSpecies.value = null
   selectedPokemonAbility.value = null
   selectedDetailsTab.value = 'stats'
-  selectedPokemonEvolutions.value = []
+  selectedPokemonEvolutions.value = null
   selectedPokemonEvolutionsDetails.value = []
 }
 
@@ -83,15 +87,15 @@ const fetchEvolutions = async () => {
     const evolutionUrls = []
     const chain = data.chain
 
-    evolutionUrls.push(chain.species.url)
+    evolutionUrls.push(chain.species.name)
     if (chain.evolves_to.length > 0) {
-      evolutionUrls.push(chain.evolves_to[0].species.url)
+      evolutionUrls.push(chain.evolves_to[0].species.name)
       if (chain.evolves_to[0].evolves_to.length > 0) {
-        evolutionUrls.push(chain.evolves_to[0].evolves_to[0].species.url)
+        evolutionUrls.push(chain.evolves_to[0].evolves_to[0].species.name)
       }
     }
 
-    const evolutionPromises = evolutionUrls.map(url => fetch(url))
+    const evolutionPromises = evolutionUrls.map(name => fetch(`https://pokeapi.co/api/v2/pokemon/${name}`))
     const evolutionResponses = await Promise.all(evolutionPromises)
 
     selectedPokemonEvolutionsDetails.value = []
@@ -106,17 +110,15 @@ const fetchEvolutions = async () => {
     error.value = err.message
     throw new Error(err.message)
   } finally {
-    console.log('exiting fetchEvolutions')
     isLoadingEvolutions.value = false
   }
 }
 
 const selectDetailTabs = (tab) => {
   selectedDetailsTab.value = tab
-  if (tab === 'stats') {
-    selectedPokemonEvolutionsDetails.value = []
-    selectedPokemonEvolutionsDetails.value = []
-  } else if (tab === 'evolutions') {
+  selectedPokemonEvolutionsDetails.value = []
+  selectedPokemonEvolutionsDetails.value = []
+  if (tab === 'evolutions') {
     fetchEvolutions()
   }
 }
@@ -175,7 +177,9 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
       </div>
       <button class="load-more-button" @click="fetchPokemon(nextUrl)" :class="{ loading: isLoadingPokemons }"
         :disabled="isLoadingPokemons">
-        <span v-if="isLoadingPokemons">Loading...</span>
+        <span class="spinner-wrapper" v-if="isLoadingPokemons">
+          <PokeballSpinner primaryColor="#dddddd" secondaryColor="#1b82b1" size="20px" />
+        </span>
         <span v-else>Load more Pokemon</span>
       </button>
     </div>
@@ -270,18 +274,37 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
                 :key="value"></div>
               <div class="stat-bar" style="background-color: #30a7d7;"
                 v-for="value in Math.ceil(selectedPokemon.stats[index].base_stat / 17)" :key="value"></div>
-              <span style="font-weight: 500;">{{ stat }}</span>
+              <span style="font-weight: 500; color: #ffffff">{{ stat }}</span>
             </div>
           </div>
         </div>
         <!-- Evolutions Content -->
         <div class="evolutions-content" v-else-if="selectedDetailsTab === 'evolutions'">
           <div v-if="isLoadingEvolutions">
-            <PokeballSpinner secondaryColor="#a4a4a4" />
+            <PokeballSpinner primaryColor="#9f9f9f" secondaryColor="#595959" />
           </div>
-          <div v-if="selectedPokemonEvolutionsDetails">
-            <div v-for="pokemon in selectedPokemonEvolutionsDetails" :key="pokemon.id">
-              {{ firstLetterUpperCase(pokemon.name) }}
+          <div class="evolutions-container" v-if="selectedPokemonEvolutionsDetails && !isLoadingEvolutions">
+            <div class="evolutions-pokemon" v-for="pokemon, index in selectedPokemonEvolutionsDetails"
+              :key="pokemon.id">
+              <div class="evolutions-pokemon-details" @click="showPokemonDetails(pokemon)">
+                <div class="evolutions-pokemon-frame">
+                  <img :src="pokemon.sprites.other['official-artwork'].front_default" :alt="pokemon.name"
+                    height="130px" />
+                </div>
+                <div class="evolutions-pokemon-name">
+                  <h3>{{ firstLetterUpperCase(pokemon.name) }}</h3>
+                  <h3 style="color: #a4acaf;">#{{ pokemon.id.toString().padStart(4, '0') }}</h3>
+                </div>
+                <div class="pokemon-types" style="gap: 2px;">
+                  <div v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`"
+                    style="width: 70px; font-size: 0.8rem;">
+                    {{ firstLetterUpperCase(type.type.name) }}
+                  </div>
+                </div>
+              </div>
+              <div v-if="index < selectedPokemonEvolutionsDetails.length - 1" style="font-size: 2rem;">
+                >
+              </div>
             </div>
           </div>
         </div>
@@ -521,10 +544,14 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 }
 
 .load-more-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: #30a7d7;
   color: white;
   border: none;
-  padding: 10px 20px;
+  height: 36px;
+  width: 164px;
   border-radius: 5px;
   cursor: pointer;
 }
@@ -692,26 +719,26 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   border-radius: 10px 10px 0 0;
   padding: 10px 20px;
   cursor: pointer;
-  background-color: #d0d0d0;
+  background-color: #c0c0c0;
   color: #515151;
-}
-
-.details-tabs button:hover {
-  background-color: #c4c4c4;
-  color: #000000;
   transition: background-color 0.3s ease-out, color 0.3s ease-out;
 }
 
-.details-tabs button.active {
+.details-tabs button:hover {
   background-color: #a4a4a4;
   color: #000000;
+}
+
+.details-tabs button.active {
+  background-color: #616161;
+  color: #ffffff;
 }
 
 .stats-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #a4a4a4;
+  background-color: #616161;
   border-radius: 0 10px 10px 10px;
   padding: 5px;
   height: 300px;
@@ -728,8 +755,67 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #a4a4a4;
+  background-color: #616161;
   border-radius: 0 10px 10px 10px;
   height: 300px;
+}
+
+.evolutions-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.evolutions-pokemon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.evolutions-pokemon-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.evolutions-pokemon-details:hover {
+  cursor: pointer;
+}
+
+.evolutions-pokemon-frame {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #717171;
+  border-radius: 50%;
+  width: 140px;
+  height: 140px;
+  border: #ffffff 4px solid;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.evolutions-pokemon-frame img {
+  height: 115px;
+}
+
+.evolutions-pokemon-name {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.evolutions-pokemon-name h3 {
+  font-weight: 500;
 }
 </style>
