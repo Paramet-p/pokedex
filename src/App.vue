@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import PokeballSpinner from './components/icons/PokeballSpinner.vue'
+
 const pokemons = ref([])
 const nextUrl = ref(null)
 const error = ref(null)
@@ -125,8 +127,11 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   <div v-if="showPopup" class="pokemon-popup-overlay">
     <div class="pokemon-popup">
       <button class="close-button" @click="closePokemonDetails">X</button>
-      <div v-if="isLoadingpokemonPopup" style="color: white; font-size: 1.5rem;">
+      <!-- <div v-if="isLoadingpokemonPopup" style="color: white; font-size: 1.5rem;">
         Loading...
+      </div> -->
+      <div v-if="isLoadingpokemonPopup" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+        <PokeballSpinner />
       </div>
       <div class="popup-header" v-if="selectedPokemon && !isLoadingpokemonPopup">
         <h1>{{ firstLetterUpperCase(selectedPokemon.name) }}</h1>
@@ -190,7 +195,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
         </div>
       </div>
       <!-- Details -->
-      <div>
+      <div v-if="selectedPokemon && !isLoadingpokemonPopup">
         <!-- Details Tabs -->
         <div class="details-tabs">
           <button :class="{'active': selectedDetailsTab === 'stats'}" @click="selectedDetailsTab = 'stats'" >
@@ -489,6 +494,8 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
   border-radius: 10px;
   position: relative;
   text-align: center;
+  width: 660px;
+  height: 704px;
 }
 
 .close-button {
