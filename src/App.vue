@@ -7,6 +7,7 @@ const allPokemons = ref([])
 const pokemons = ref([])
 const nextUrl = ref(null)
 const error = ref(null)
+const searchTerm = ref('')
 const isLoadingPokemons = ref(true)
 const isLoadingpokemonPopup = ref(true)
 const isLoadingAbility = ref(true)
@@ -24,7 +25,7 @@ const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
 const fetchAllPokemons = async () => {
   try {
     isLoadingPokemons.value = true
-    const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0')
+    const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0')
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
@@ -37,6 +38,36 @@ const fetchAllPokemons = async () => {
     error.value = err.message
   } finally {
     isLoadingPokemons.value = false
+  }
+}
+
+const searchPokemon = () => {
+  isLoadingPokemons.value = true
+  pokemons.value = []
+  if (searchTerm.value.trim() === '') {
+    fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
+  } else {
+    const search = searchTerm.value.toLowerCase().trim()
+    const matchedPokemon = allPokemons.value.filter(pokemon => pokemon.name.includes(search) || pokemon.id.toString() === search)
+    if (matchedPokemon) {
+      const pokemonPromises = matchedPokemon.map(pokemon => fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`))
+      Promise.all(pokemonPromises)
+        .then(responses => Promise.all(responses.map(res => res.json())))
+        .then(data => {
+          pokemons.value = data
+        })
+        .catch(err => {
+          error.value = err.message
+          throw new Error(err.message)
+        })
+        .finally(() => {
+          isLoadingPokemons.value = false
+        })
+    } else {
+      pokemons.value = []
+      isLoadingPokemons.value = false
+    }
+    nextUrl.value = null
   }
 }
 
@@ -186,8 +217,8 @@ fetchAllPokemons()
       <div class="search-wrapper">
         <h2>Name or Number</h2>
         <div class="search-bar">
-          <input />
-          <button>
+          <input v-model="searchTerm" @keypress.enter="searchPokemon" />
+          <button @click="searchPokemon">
             <IconSearch />
           </button>
         </div>
@@ -209,7 +240,7 @@ fetchAllPokemons()
           </div>
         </div>
       </div>
-      <button class="load-more-button" @click="fetchPokemon(nextUrl)" :class="{ loading: isLoadingPokemons }"
+      <button v-if="nextUrl" class="load-more-button" @click="fetchPokemon(nextUrl)" :class="{ loading: isLoadingPokemons }"
         :disabled="isLoadingPokemons">
         <span class="spinner-wrapper" v-if="isLoadingPokemons">
           <PokeballSpinner primaryColor="#dddddd" secondaryColor="#1b82b1" size="20px" />
@@ -423,6 +454,7 @@ fetchAllPokemons()
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  margin-bottom: 20px;
 }
 
 .pokemon-card-container {
@@ -439,10 +471,8 @@ fetchAllPokemons()
 }
 
 .pokemon-card:hover {
-  /* background-color: rgba(0, 0, 0, 0.1); */
   transform: translateY(-2px);
   transition: background-color 0.3s ease-out, transform 0.3s ease-out;
-  /* color: white; */
   cursor: pointer;
 }
 
