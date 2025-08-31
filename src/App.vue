@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import PokeballSpinner from './components/icons/PokeballSpinner.vue'
+import IconSearch from './components/icons/IconSearch.vue'
 
 const allPokemons = ref([])
 const pokemons = ref([])
@@ -181,6 +182,18 @@ fetchAllPokemons()
 <template>
   <div class="main-container">
     <h1>Pokedex</h1>
+    <div class="search-container">
+      <div class="search-wrapper">
+        <h2>Name or Number</h2>
+        <div class="search-bar">
+          <input />
+          <button>
+            <IconSearch />
+          </button>
+        </div>
+        <h4>Use the Advanced Search to explore Pokemon by type</h4>
+      </div>
+    </div>
     <div class="pokemon-list-wrapper">
       <div class="pokemon-card-container">
         <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.id" @click="showPokemonDetails(pokemon)">
@@ -339,14 +352,70 @@ fetchAllPokemons()
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
   gap: 20px;
+  width: 100%;
 }
 
 .main-container h1 {
   color: #616161;
   font-weight: 500;
   font-size: 2.5rem;
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #313131;
+  width: 100%;
+  padding: 20px 0;
+}
+
+.search-container h2 {
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.search-container h4 {
+  color: #ffffff;
+  margin-top: 10px;
+}
+
+.search-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 860px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.search-bar input {
+  border: 2px solid #616161;
+  border-radius: 5px;
+  height: 42px;
+  width: 250px;
+  padding-left: 10px;
+  font-size: 1rem;
+}
+
+.search-bar button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ee6b2f;
+  border: none;
+  height: 42px;
+  width: 48px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-out;
+}
+
+.search-bar button:hover {
+  background-color: #da471b;
 }
 
 .pokemon-list-wrapper {
