@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import PokeballSpinner from './components/icons/PokeballSpinner.vue'
 
+const allPokemons = ref([])
 const pokemons = ref([])
 const nextUrl = ref(null)
 const error = ref(null)
@@ -18,6 +19,25 @@ const selectedPokemonEvolutions = ref(null)
 const selectedPokemonEvolutionsDetails = ref([])
 
 const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
+
+const fetchAllPokemons = async () => {
+  try {
+    isLoadingPokemons.value = true
+    const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0')
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+    for (const [index, pokemon] of data.results.entries()) {
+      const pokemonData = { name: pokemon.name, id: index + 1 }
+      allPokemons.value.push(pokemonData)
+    }
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isLoadingPokemons.value = false
+  }
+}
 
 const showPokemonDetails = (pokemon) => {
   selectedPokemon.value = pokemon
@@ -155,6 +175,7 @@ const fetchPokemon = async (url) => {
 }
 
 fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
+fetchAllPokemons()
 </script>
 
 <template>
@@ -323,7 +344,7 @@ fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 }
 
 .main-container h1 {
-  color: #919191;
+  color: #616161;
   font-weight: 500;
   font-size: 2.5rem;
 }
