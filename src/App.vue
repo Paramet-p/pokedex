@@ -2,12 +2,17 @@
 import { ref } from 'vue'
 import PokeballSpinner from './components/icons/PokeballSpinner.vue'
 import IconSearch from './components/icons/IconSearch.vue'
+import DropDown from './components/elements/DropDown.vue'
 
 const allPokemons = ref([])
+const pokemonsForFetch = ref([])
+const startIndex = ref(0)
+const endIndex = ref(12)
 const pokemons = ref([])
 const nextUrl = ref(null)
 const error = ref(null)
 const searchTerm = ref('')
+const sortOption = ref('lowest-number')
 const isLoadingPokemons = ref(true)
 const isLoadingpokemonPopup = ref(true)
 const isLoadingAbility = ref(true)
@@ -31,8 +36,44 @@ const fetchAllPokemons = async () => {
     }
     const data = await response.json()
     for (const [index, pokemon] of data.results.entries()) {
-      const pokemonData = { name: pokemon.name, id: index + 1 }
+      const pokemonData = { name: pokemon.name, id: index + 1, url: pokemon.url }
       allPokemons.value.push(pokemonData)
+    }
+    fetchPokemon()
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isLoadingPokemons.value = false
+  }
+}
+
+const setPokemonsForFetch = () => {
+  pokemonsForFetch.value = allPokemons.value.slice(startIndex.value, endIndex.value)
+  startIndex.value += 12
+  endIndex.value += 12
+}
+
+const reSetIndex = () => {
+  pokemons.value = []
+  startIndex.value = 0
+  endIndex.value = 12
+}
+
+const fetchPokemon = async () => {
+  try {
+    isLoadingPokemons.value = true
+
+    setPokemonsForFetch()
+
+    const pokemonFetch = pokemonsForFetch.value.map(pokemon => fetch(pokemon.url))
+    const pokemonResponses = await Promise.all(pokemonFetch)
+
+    for (const res of pokemonResponses) {
+      if (!res.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const pokemonData = await res.json()
+      pokemons.value.push(pokemonData)
     }
   } catch (err) {
     error.value = err.message
@@ -45,12 +86,14 @@ const searchPokemon = () => {
   isLoadingPokemons.value = true
   pokemons.value = []
   if (searchTerm.value.trim() === '') {
-    fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
+    startIndex.value = 0
+    endIndex.value = 12
+    fetchPokemon()
   } else {
     const search = searchTerm.value.toLowerCase().trim()
     const matchedPokemon = allPokemons.value.filter(pokemon => pokemon.name.includes(search) || pokemon.id.toString() === search)
     if (matchedPokemon) {
-      const pokemonPromises = matchedPokemon.map(pokemon => fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`))
+      const pokemonPromises = matchedPokemon.map(pokemon => fetch(pokemon.url))
       Promise.all(pokemonPromises)
         .then(responses => Promise.all(responses.map(res => res.json())))
         .then(data => {
@@ -68,6 +111,38 @@ const searchPokemon = () => {
       isLoadingPokemons.value = false
     }
     nextUrl.value = null
+  }
+}
+
+const sortPokemons = () => {
+  switch (sortOption.value) {
+    case 'lowest-number':
+      allPokemons.value.sort((a, b) => a.id - b.id)
+      reSetIndex()
+      fetchPokemon()
+      break
+    case 'highest-number':
+      console.log('highest-number selected')
+      allPokemons.value.sort((a, b) => b.id - a.id)
+      console.log('all', allPokemons.value[0])
+      reSetIndex()
+      console.log('index', startIndex.value, endIndex.value)
+      fetchPokemon()
+      console.log('for fetch', pokemonsForFetch.value)
+      console.log('show', pokemons.value)
+      break
+    case 'a-z':
+      allPokemons.value.sort((a, b) => a.name.localeCompare(b.name))
+      reSetIndex()
+      fetchPokemon()
+      break
+    case 'z-a':
+      allPokemons.value.sort((a, b) => b.name.localeCompare(a.name))
+      reSetIndex()
+      fetchPokemon()
+      break
+    default:
+      break
   }
 }
 
@@ -179,40 +254,13 @@ const firstLetterUpperCase = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
-const fetchPokemon = async (url) => {
-  try {
-    isLoadingPokemons.value = true
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
-    }
-    const data = await response.json()
-    nextUrl.value = data.next
-
-    const pokemonFetch = data.results.map(pokemon => fetch(pokemon.url))
-    const pokemonResponses = await Promise.all(pokemonFetch)
-
-    for (const res of pokemonResponses) {
-      if (!res.ok) {
-        throw new Error('Network response was not ok')
-      }
-      const pokemonData = await res.json()
-      pokemons.value.push(pokemonData)
-    }
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    isLoadingPokemons.value = false
-  }
-}
-
-fetchPokemon('https://pokeapi.co/api/v2/pokemon?limit=12&offset=0')
 fetchAllPokemons()
 </script>
 
 <template>
   <div class="main-container">
     <h1>Pokedex</h1>
+    <!-- Search -->
     <div class="search-container">
       <div class="search-wrapper">
         <h2>Name or Number</h2>
@@ -225,6 +273,17 @@ fetchAllPokemons()
         <h4>Use the Advanced Search to explore Pokemon by type</h4>
       </div>
     </div>
+    <!-- Sort Button -->
+    <div class="sort-container">
+      Sort By
+      <select v-model="sortOption" @change="sortPokemons">
+        <option value="lowest-number">Lowest Number (First)</option>
+        <option value="highest-number">Highest Number (First)</option>
+        <option value="a-z">A-Z</option>
+        <option value="z-a">Z-A</option>
+      </select>
+    </div>
+    <!-- Pokemon List -->
     <div class="pokemon-list-wrapper">
       <div class="pokemon-card-container">
         <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.id" @click="showPokemonDetails(pokemon)">
@@ -240,8 +299,9 @@ fetchAllPokemons()
           </div>
         </div>
       </div>
-      <button v-if="nextUrl" class="load-more-button" @click="fetchPokemon(nextUrl)" :class="{ loading: isLoadingPokemons }"
-        :disabled="isLoadingPokemons">
+      <!-- Load More Button -->
+      <button class="load-more-button" @click="fetchPokemon()"
+        :class="{ loading: isLoadingPokemons }" :disabled="isLoadingPokemons">
         <span class="spinner-wrapper" v-if="isLoadingPokemons">
           <PokeballSpinner primaryColor="#dddddd" secondaryColor="#1b82b1" size="20px" />
         </span>
@@ -444,9 +504,38 @@ fetchAllPokemons()
   cursor: pointer;
   transition: background-color 0.3s ease-out;
 }
-
 .search-bar button:hover {
   background-color: #da471b;
+}
+
+.sort-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 860px;
+  gap: 10px;
+  color: #a4a4a4;
+}
+
+.sort-container select {
+  border: none;
+  border-radius: 5px;
+  background-color: #313131;
+  color: #ffffff;
+  height: 36px;
+  width: 200px;
+  padding: 0 10px;
+  font-size: 1rem;
+}
+.sort-container select:hover {
+  cursor: pointer;
+}
+
+.sort-container option {
+  background-color: #616161;
+}
+.sort-container option:hover {
+  background-color: #719f3f;
 }
 
 .pokemon-list-wrapper {
