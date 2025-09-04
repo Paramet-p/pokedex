@@ -5,7 +5,6 @@ import IconSearch from './components/icons/IconSearch.vue'
 import DropDown from './components/elements/DropDown.vue'
 
 const allPokemons = ref([])
-const pokemonsForFetch = ref([])
 const startIndex = ref(0)
 const endIndex = ref(12)
 const pokemons = ref([])
@@ -32,46 +31,37 @@ const selectedPokemonEvolutionsDetails = ref([])
 
 const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
 
-const fetchAllPokemons = async () => {
+const loadPokemons = async () => {
   try {
     isLoadingPokemons.value = true
-    const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0')
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
+    // filter data by search term
+    let filteredPokemons = allPokemons.value
+    if (searchTerm.value.trim() !== '') {
+      const search = searchTerm.value.toLowerCase().trim()
+      filteredPokemons = allPokemons.value.filter(pokemon => pokemon.name.includes(search) || pokemon.id.toString().includes(search))
     }
-    const data = await response.json()
-    allPokemons.value = data.results.map((pokemon, index) => {
-      return { name: pokemon.name, id: index + 1, url: pokemon.url }
-    })
-    sortAndFetchPokemons()
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    isLoadingPokemons.value = false
-  }
-}
-
-const setPokemonsForFetch = () => {
-  pokemonsForFetch.value = allPokemons.value.slice(startIndex.value, endIndex.value)
-  startIndex.value += 12
-  endIndex.value += 12
-}
-
-const reSetIndex = () => {
-  pokemons.value = []
-  startIndex.value = 0
-  endIndex.value = 12
-}
-
-const fetchPokemon = async () => {
-  try {
-    isLoadingPokemons.value = true
-
-    setPokemonsForFetch()
-
-    const pokemonFetch = pokemonsForFetch.value.map(pokemon => fetch(pokemon.url))
-    const pokemonResponses = await Promise.all(pokemonFetch)
-
+    // sort data
+    switch (sortOption.value) {
+      case 'lowest-number':
+        filteredPokemons.sort((a, b) => a.id - b.id)
+        break
+      case 'highest-number':
+        filteredPokemons.sort((a, b) => b.id - a.id)
+        break
+      case 'a-z':
+        filteredPokemons.sort((a, b) => a.name.localeCompare(b.name))
+        break
+      case 'z-a':
+        filteredPokemons.sort((a, b) => b.name.localeCompare(a.name))
+        break
+      default:
+        break
+    }
+    // fetch 12 pokemons details per time
+    const pokemonToDisplay = filteredPokemons.slice(startIndex.value, endIndex.value)
+    const pokemonPromises = pokemonToDisplay.map(pokemon => fetch(pokemon.url))
+    const pokemonResponses = await Promise.all(pokemonPromises)
+    // push pokemons data to pokemons array to display
     for (const res of pokemonResponses) {
       if (!res.ok) {
         throw new Error('Network response was not ok')
@@ -86,48 +76,45 @@ const fetchPokemon = async () => {
   }
 }
 
-const searchPokemon = () => {
-  pokemons.value = []
-  if (searchTerm.value.trim() === '') {
-    fetchAllPokemons()
-  } else {
-    const search = searchTerm.value.toLowerCase().trim()
-    const matchedPokemon = allPokemons.value.filter(pokemon => pokemon.name.includes(search) || pokemon.id.toString() === search)
-    if (matchedPokemon) {
-      allPokemons.value = matchedPokemon
-      reSetIndex()
-      fetchPokemon()
-    } else {
-      pokemons.value = []
+const fetchAllPokemons = async () => {
+  try {
+    isLoadingPokemons.value = true
+    const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=1025&offset=0')
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
     }
+    const data = await response.json()
+    allPokemons.value = data.results.map((pokemon, index) => {
+      return { name: pokemon.name, id: index + 1, url: pokemon.url }
+    })
+    loadPokemons()
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isLoadingPokemons.value = false
   }
 }
 
-const sortAndFetchPokemons = () => {
-  switch (sortOption.value) {
-    case 'lowest-number':
-      allPokemons.value.sort((a, b) => a.id - b.id)
-      reSetIndex()
-      fetchPokemon()
-      break
-    case 'highest-number':
-      allPokemons.value.sort((a, b) => b.id - a.id)
-      reSetIndex()
-      fetchPokemon()
-      break
-    case 'a-z':
-      allPokemons.value.sort((a, b) => a.name.localeCompare(b.name))
-      reSetIndex()
-      fetchPokemon()
-      break
-    case 'z-a':
-      allPokemons.value.sort((a, b) => b.name.localeCompare(a.name))
-      reSetIndex()
-      fetchPokemon()
-      break
-    default:
-      break
-  }
+const reSetIndex = () => {
+  pokemons.value = []
+  startIndex.value = 0
+  endIndex.value = 12
+}
+
+const searchPokemons = () => {
+  reSetIndex()
+  loadPokemons()
+}
+
+const sortPokemons = () => {
+  reSetIndex()
+  loadPokemons()
+}
+
+const loadMorePokemons = () => {
+  startIndex.value += 12
+  endIndex.value += 12
+  loadPokemons()
 }
 
 const showPokemonDetails = (pokemon) => {
@@ -249,8 +236,8 @@ fetchAllPokemons()
       <div class="search-wrapper">
         <h2>Name or Number</h2>
         <div class="search-bar">
-          <input v-model="searchTerm" @keypress.enter="searchPokemon" />
-          <button @click="searchPokemon">
+          <input v-model="searchTerm" @keypress.enter="searchPokemons" />
+          <button @click="searchPokemons">
             <IconSearch />
           </button>
         </div>
@@ -261,7 +248,7 @@ fetchAllPokemons()
     <div class="sort-container">
       Sort By
       <DropDown :options="sortOptions" :selected="sortOptions[0]" v-model:selected="sortOption"
-        @update:selected="sortAndFetchPokemons" />
+        @update:selected="sortPokemons" />
     </div>
     <!-- Pokemon List -->
     <div class="pokemon-list-wrapper">
@@ -280,7 +267,7 @@ fetchAllPokemons()
         </div>
       </div>
       <!-- Load More Button -->
-      <button class="load-more-button" @click="fetchPokemon()" :class="{ loading: isLoadingPokemons }"
+      <button class="load-more-button" @click="loadMorePokemons()" :class="{ loading: isLoadingPokemons }"
         :disabled="isLoadingPokemons" v-if="pokemons.length < allPokemons.length">
         <span class="spinner-wrapper" v-if="isLoadingPokemons">
           <PokeballSpinner primaryColor="#dddddd" secondaryColor="#1b82b1" size="20px" />
