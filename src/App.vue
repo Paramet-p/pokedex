@@ -13,6 +13,12 @@ const nextUrl = ref(null)
 const error = ref(null)
 const searchTerm = ref('')
 const sortOption = ref('lowest-number')
+const sortOptions = [
+  { name: 'Lowest Number (First)', value: 'lowest-number' },
+  { name: 'Highest Number (First)', value: 'highest-number' },
+  { name: 'A-Z', value: 'a-z' },
+  { name: 'Z-A', value: 'z-a' }
+]
 const isLoadingPokemons = ref(true)
 const isLoadingpokemonPopup = ref(true)
 const isLoadingAbility = ref(true)
@@ -122,14 +128,9 @@ const sortPokemons = () => {
       fetchPokemon()
       break
     case 'highest-number':
-      console.log('highest-number selected')
       allPokemons.value.sort((a, b) => b.id - a.id)
-      console.log('all', allPokemons.value[0])
       reSetIndex()
-      console.log('index', startIndex.value, endIndex.value)
       fetchPokemon()
-      console.log('for fetch', pokemonsForFetch.value)
-      console.log('show', pokemons.value)
       break
     case 'a-z':
       allPokemons.value.sort((a, b) => a.name.localeCompare(b.name))
@@ -276,12 +277,8 @@ fetchAllPokemons()
     <!-- Sort Button -->
     <div class="sort-container">
       Sort By
-      <select v-model="sortOption" @change="sortPokemons">
-        <option value="lowest-number">Lowest Number (First)</option>
-        <option value="highest-number">Highest Number (First)</option>
-        <option value="a-z">A-Z</option>
-        <option value="z-a">Z-A</option>
-      </select>
+      <DropDown :options="sortOptions" :selected="sortOptions[0]" v-model:selected="sortOption"
+        @update:selected="sortPokemons" />
     </div>
     <!-- Pokemon List -->
     <div class="pokemon-list-wrapper">
@@ -300,8 +297,8 @@ fetchAllPokemons()
         </div>
       </div>
       <!-- Load More Button -->
-      <button class="load-more-button" @click="fetchPokemon()"
-        :class="{ loading: isLoadingPokemons }" :disabled="isLoadingPokemons">
+      <button class="load-more-button" @click="fetchPokemon()" :class="{ loading: isLoadingPokemons }"
+        :disabled="isLoadingPokemons">
         <span class="spinner-wrapper" v-if="isLoadingPokemons">
           <PokeballSpinner primaryColor="#dddddd" secondaryColor="#1b82b1" size="20px" />
         </span>
@@ -504,6 +501,7 @@ fetchAllPokemons()
   cursor: pointer;
   transition: background-color 0.3s ease-out;
 }
+
 .search-bar button:hover {
   background-color: #da471b;
 }
@@ -515,6 +513,7 @@ fetchAllPokemons()
   width: 860px;
   gap: 10px;
   color: #a4a4a4;
+  font-weight: 500;
 }
 
 .sort-container select {
@@ -527,6 +526,7 @@ fetchAllPokemons()
   padding: 0 10px;
   font-size: 1rem;
 }
+
 .sort-container select:hover {
   cursor: pointer;
 }
@@ -534,6 +534,7 @@ fetchAllPokemons()
 .sort-container option {
   background-color: #616161;
 }
+
 .sort-container option:hover {
   background-color: #719f3f;
 }
