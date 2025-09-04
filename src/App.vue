@@ -221,8 +221,15 @@ const selectDetailTabs = (tab) => {
   }
 }
 
-const firstLetterUpperCase = (str) => {
-  return str.charAt(0).toUpperCase() + str.slice(1)
+const capitalizedString = (str) => {
+  // str have single word
+  if (!str.includes('-')) {
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+  // str have multiple words
+  const words = str.split('-')
+  const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+  return capitalizedWords.join(' ')
 }
 
 fetchAllPokemons()
@@ -259,10 +266,10 @@ fetchAllPokemons()
               width="140px" />
           </div>
           <h5>#{{ pokemon.id.toString().padStart(4, '0') }}</h5>
-          <h2>{{ firstLetterUpperCase(pokemon.name) }}</h2>
+          <h2>{{ capitalizedString(pokemon.name) }}</h2>
           <div class="pokemon-types">
             <h4 v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`">{{
-              firstLetterUpperCase(type.type.name) }}</h4>
+              capitalizedString(type.type.name) }}</h4>
           </div>
         </div>
       </div>
@@ -285,7 +292,7 @@ fetchAllPokemons()
         <PokeballSpinner />
       </div>
       <div class="popup-header" v-if="selectedPokemon && !isLoadingpokemonPopup">
-        <h1>{{ firstLetterUpperCase(selectedPokemon.name) }}</h1>
+        <h1>{{ capitalizedString(selectedPokemon.name) }}</h1>
         <h1 style="color: #616161">#{{ selectedPokemon.id.toString().padStart(4, '0') }}</h1>
       </div>
       <div v-if="selectedPokemon && !isLoadingpokemonPopup">
@@ -315,7 +322,7 @@ fetchAllPokemons()
                   <h4>Abilities</h4>
                   <div style="display: flex; align-items: baseline; gap: 10px;">
                     <h3 style="cursor: pointer" @click="fetchAbility">
-                      {{ firstLetterUpperCase(selectedPokemon.abilities[0].ability.name) }}
+                      {{ capitalizedString(selectedPokemon.abilities[0].ability.name) }}
                     </h3>
                     <div class="circle-icon" @click="fetchAbility">?</div>
                   </div>
@@ -328,7 +335,7 @@ fetchAllPokemons()
                 </button>
                 <h5>Ability Info</h5>
                 <h3>
-                  {{ firstLetterUpperCase(selectedPokemon.abilities[0].ability.name) }}
+                  {{ capitalizedString(selectedPokemon.abilities[0].ability.name) }}
                 </h3>
                 <h4>
                   {{ selectedPokemonAbility?.flavor_text_entries?.[selectedPokemonAbility.flavor_text_entries.length -
@@ -339,7 +346,7 @@ fetchAllPokemons()
             <h3 style="text-align: start;">Type</h3>
             <div class="pokemon-types">
               <h4 v-for="(type, index) in selectedPokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`">
-                {{ firstLetterUpperCase(type.type.name) }}
+                {{ capitalizedString(type.type.name) }}
               </h4>
             </div>
           </div>
@@ -384,13 +391,13 @@ fetchAllPokemons()
                     height="130px" />
                 </div>
                 <div class="evolutions-pokemon-name">
-                  <h3>{{ firstLetterUpperCase(pokemon.name) }}</h3>
+                  <h3>{{ capitalizedString(pokemon.name) }}</h3>
                   <h3 style="color: #a4acaf;">#{{ pokemon.id.toString().padStart(4, '0') }}</h3>
                 </div>
                 <div class="pokemon-types" style="gap: 2px;">
                   <div v-for="(type, index) in pokemon.types" :key="index" :class="`pokemon-type-${type.type.name}`"
                     style="width: 70px; font-size: 0.8rem;">
-                    {{ firstLetterUpperCase(type.type.name) }}
+                    {{ capitalizedString(type.type.name) }}
                   </div>
                 </div>
               </div>
