@@ -9,7 +9,6 @@ const pokemonsForFetch = ref([])
 const startIndex = ref(0)
 const endIndex = ref(12)
 const pokemons = ref([])
-const nextUrl = ref(null)
 const error = ref(null)
 const searchTerm = ref('')
 const sortOption = ref('lowest-number')
@@ -41,11 +40,10 @@ const fetchAllPokemons = async () => {
       throw new Error('Network response was not ok')
     }
     const data = await response.json()
-    for (const [index, pokemon] of data.results.entries()) {
-      const pokemonData = { name: pokemon.name, id: index + 1, url: pokemon.url }
-      allPokemons.value.push(pokemonData)
-    }
-    fetchPokemon()
+    allPokemons.value = data.results.map((pokemon, index) => {
+      return { name: pokemon.name, id: index + 1, url: pokemon.url }
+    })
+    sortAndFetchPokemons()
   } catch (err) {
     error.value = err.message
   } finally {
@@ -89,38 +87,23 @@ const fetchPokemon = async () => {
 }
 
 const searchPokemon = () => {
-  isLoadingPokemons.value = true
   pokemons.value = []
   if (searchTerm.value.trim() === '') {
-    startIndex.value = 0
-    endIndex.value = 12
-    fetchPokemon()
+    fetchAllPokemons()
   } else {
     const search = searchTerm.value.toLowerCase().trim()
     const matchedPokemon = allPokemons.value.filter(pokemon => pokemon.name.includes(search) || pokemon.id.toString() === search)
     if (matchedPokemon) {
-      const pokemonPromises = matchedPokemon.map(pokemon => fetch(pokemon.url))
-      Promise.all(pokemonPromises)
-        .then(responses => Promise.all(responses.map(res => res.json())))
-        .then(data => {
-          pokemons.value = data
-        })
-        .catch(err => {
-          error.value = err.message
-          throw new Error(err.message)
-        })
-        .finally(() => {
-          isLoadingPokemons.value = false
-        })
+      allPokemons.value = matchedPokemon
+      reSetIndex()
+      fetchPokemon()
     } else {
       pokemons.value = []
-      isLoadingPokemons.value = false
     }
-    nextUrl.value = null
   }
 }
 
-const sortPokemons = () => {
+const sortAndFetchPokemons = () => {
   switch (sortOption.value) {
     case 'lowest-number':
       allPokemons.value.sort((a, b) => a.id - b.id)
@@ -278,7 +261,7 @@ fetchAllPokemons()
     <div class="sort-container">
       Sort By
       <DropDown :options="sortOptions" :selected="sortOptions[0]" v-model:selected="sortOption"
-        @update:selected="sortPokemons" />
+        @update:selected="sortAndFetchPokemons" />
     </div>
     <!-- Pokemon List -->
     <div class="pokemon-list-wrapper">
@@ -298,7 +281,7 @@ fetchAllPokemons()
       </div>
       <!-- Load More Button -->
       <button class="load-more-button" @click="fetchPokemon()" :class="{ loading: isLoadingPokemons }"
-        :disabled="isLoadingPokemons">
+        :disabled="isLoadingPokemons" v-if="pokemons.length < allPokemons.length">
         <span class="spinner-wrapper" v-if="isLoadingPokemons">
           <PokeballSpinner primaryColor="#dddddd" secondaryColor="#1b82b1" size="20px" />
         </span>

@@ -1,5 +1,3 @@
-fix sort support search
 handle 404 in search function
 support display ability(genus) for all pokemons
 support display evolutinos for all pokemons sush as eevee
-fix search method for display 12 pokemons per time
