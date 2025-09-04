@@ -154,10 +154,10 @@ const fetchPokemonSpecies = async () => {
   }
 }
 
-const fetchAbility = async () => {
+const fetchAbility = async (abilityUrl) => {
   try {
     isLoadingAbility.value = true
-    const response = await fetch(selectedPokemon.value.abilities[0].ability.url)
+    const response = await fetch(abilityUrl)
     if (!response.ok) {
       throw new Error('Network response was not ok')
     }
@@ -222,14 +222,21 @@ const selectDetailTabs = (tab) => {
 }
 
 const capitalizedString = (str) => {
-  // str have single word
-  if (!str.includes('-')) {
-    return str.charAt(0).toUpperCase() + str.slice(1)
+  if (str) {
+    // str have single word
+    if (!str.includes('-')) {
+      return str.charAt(0).toUpperCase() + str.slice(1)
+    }
+    // str have multiple words
+    const words = str.split('-')
+    const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    return capitalizedWords.join(' ')
   }
-  // str have multiple words
-  const words = str.split('-')
-  const capitalizedWords = words.map(word => word.charAt(0).toUpperCase() + word.slice(1))
-  return capitalizedWords.join(' ')
+}
+
+const getEnGenus = (genera) => {
+  const enGenus = genera.find(genus => genus.language.name === 'en')
+  return enGenus ? enGenus.genus.slice(0, -7) : ''
 }
 
 fetchAllPokemons()
@@ -291,16 +298,20 @@ fetchAllPokemons()
         style="display: flex; justify-content: center; align-items: center; height: 100%;">
         <PokeballSpinner />
       </div>
+      <!-- popup header -->
       <div class="popup-header" v-if="selectedPokemon && !isLoadingpokemonPopup">
         <h1>{{ capitalizedString(selectedPokemon.name) }}</h1>
         <h1 style="color: #616161">#{{ selectedPokemon.id.toString().padStart(4, '0') }}</h1>
       </div>
+      <!-- popup content -->
       <div v-if="selectedPokemon && !isLoadingpokemonPopup">
         <div class="popup-content">
+          <!-- pokemon image -->
           <div class="popup-image">
             <img :src="selectedPokemon.sprites.other['official-artwork'].front_default" :alt="selectedPokemon.name"
               width="250px" />
           </div>
+          <!-- about pokemon -->
           <div style="display: flex; flex-direction: column; gap: 20px;">
             <div class="popup-about">
               <div>
@@ -316,15 +327,17 @@ fetchAllPokemons()
               <div>
                 <div style="margin-bottom: 20px;">
                   <h4>Category</h4>
-                  <h3>{{ selectedPokemonSpecies.genera[7].genus.slice(0, -7) }}</h3>
+                  <h3>{{ getEnGenus(selectedPokemonSpecies.genera) }}</h3>
                 </div>
                 <div>
                   <h4>Abilities</h4>
-                  <div style="display: flex; align-items: baseline; gap: 10px;">
-                    <h3 style="cursor: pointer" @click="fetchAbility">
-                      {{ capitalizedString(selectedPokemon.abilities[0].ability.name) }}
+                  <div v-for="ability in selectedPokemon.abilities" :key="ability.ability.name"
+                    style="display: flex; align-items: baseline; gap: 10px;">
+                    <h3 v-if="!ability.is_hidden" style="cursor: pointer" @click="fetchAbility(ability.ability.url)">
+                      {{ capitalizedString(ability.ability.name) }}
                     </h3>
-                    <div class="circle-icon" @click="fetchAbility">?</div>
+                    <div v-if="!ability.is_hidden" class="circle-icon" @click="fetchAbility(ability.ability.url)">?
+                    </div>
                   </div>
                 </div>
               </div>
@@ -335,7 +348,7 @@ fetchAllPokemons()
                 </button>
                 <h5>Ability Info</h5>
                 <h3>
-                  {{ capitalizedString(selectedPokemon.abilities[0].ability.name) }}
+                  {{ capitalizedString(selectedPokemonAbility?.name) }}
                 </h3>
                 <h4>
                   {{ selectedPokemonAbility?.flavor_text_entries?.[selectedPokemonAbility.flavor_text_entries.length -
@@ -822,7 +835,7 @@ fetchAllPokemons()
   background-color: #30a7d7;
   border-radius: 10px;
   padding: 15px;
-  width: 350px;
+  width: 360px;
 }
 
 .popup-about h4 {
