@@ -246,16 +246,25 @@ fetchAllPokemons()
   <div class="main-container">
     <h1>Pokedex</h1>
     <!-- Search -->
-    <div class="search-container">
-      <div class="search-wrapper">
-        <h2>Name or Number</h2>
-        <div class="search-bar">
-          <input v-model="searchTerm" @keypress.enter="searchPokemons" />
-          <button @click="searchPokemons">
-            <IconSearch />
-          </button>
+    <div class="search-filter-container">
+      <div class="search-container">
+        <div class="search-wrapper">
+          <h2>Name or Number</h2>
+          <div class="search-bar">
+            <input v-model="searchTerm" @keypress.enter="searchPokemons" />
+            <button @click="searchPokemons">
+              <IconSearch />
+            </button>
+          </div>
+          <h4>Use the Advanced Search to explore Pokemon by type</h4>
         </div>
-        <h4>Use the Advanced Search to explore Pokemon by type</h4>
+      </div>
+      <div class="search-advanced-header">
+      </div>
+      <div class="search-advanced-footer">
+        <span>
+          Show Advanced Search
+        </span>
       </div>
     </div>
     <!-- Sort Button -->
@@ -440,6 +449,13 @@ fetchAllPokemons()
   font-size: 2.5rem;
 }
 
+.search-filter-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
 .search-container {
   display: flex;
   flex-direction: column;
@@ -494,6 +510,46 @@ fetchAllPokemons()
 
 .search-bar button:hover {
   background-color: #da471b;
+}
+
+.search-advanced-header {
+  background-color: #616161;
+  width: 100%;
+  height: 40px;
+}
+
+.search-advanced-footer {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  background-color: #616161;
+  width: 400px;
+  height: 20px;
+  cursor: pointer;
+}
+.search-advanced-footer span {
+  position: absolute;
+  top: -10px;
+  color: #ffffff;
+  font-weight: 500;
+}
+.search-advanced-footer::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  width: 20px;
+  height: 20px;
+  background-color: #616161;
+  border-radius: 0 0 0 20px;
+}
+.search-advanced-footer::after {
+  content: '';
+  position: absolute;
+  right: -20px;
+  width: 20px;
+  height: 20px;
+  background-color: #616161;
+  border-radius: 0 0 20px 0;
 }
 
 .sort-container {
