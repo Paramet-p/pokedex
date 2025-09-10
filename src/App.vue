@@ -26,6 +26,7 @@ const selectedTypes = ref([])
 const showAdvancedSearch = ref(false)
 const isLoadingPokemons = ref(true)
 const allAbilities = ref([{ name: 'All', value: 'all' }])
+const selectedAbility = ref('all')
 const isLoadingAllAbilities = ref(false)
 const numberRangeStart = ref(1)
 const numberRangeEnd = ref(1025)
@@ -124,6 +125,13 @@ const fetchAllAbilities = async () => {
   } finally {
     isLoadingAllAbilities.value = false
   }
+}
+
+const resetAdvancedSearch = () => {
+  selectedTypes.value = []
+  selectedAbility.value = 'all'
+  numberRangeStart.value = 1
+  numberRangeEnd.value = 1025
 }
 
 const reSetIndex = () => {
@@ -315,7 +323,7 @@ fetchAllPokemons()
             <!-- ability filter -->
             <div style="display: flex; flex-direction: column; margin-bottom: 20px;">
               <span>Ability</span>
-              <DropDown :options="allAbilities" :selected="allAbilities[0]" width="100%" />
+              <DropDown :options="allAbilities" width="100%" v-model:selected="selectedAbility" />
             </div>
             <!-- number range filter -->
             <div style="display: flex; flex-direction: column;">
@@ -328,7 +336,7 @@ fetchAllPokemons()
             </div>
           </div>
           <div class="group-button">
-            <button class="button-reset">Reset</button>
+            <button class="button-reset" @click="resetAdvancedSearch()">Reset</button>
             <button class="button-search">Search</button>
           </div>
         </div>
@@ -342,7 +350,7 @@ fetchAllPokemons()
     <!-- Sort Button -->
     <div class="sort-container">
       Sort By
-      <DropDown :options="sortOptions" :selected="sortOptions[0]" v-model:selected="sortOption"
+      <DropDown :options="sortOptions" v-model:selected="sortOption"
         @update:selected="sortPokemons" />
     </div>
     <!-- Pokemon List -->

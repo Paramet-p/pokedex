@@ -23,11 +23,9 @@ defineProps({
 const emit = defineEmits(['update:selected']);
 
 const showOptions = ref(false);
-const optionSelected = ref(null);
 const dropdownRef = ref(null);
 
 const selectOption = (option) => {
-    optionSelected.value = option.name;
     emit('update:selected', option.value);
     showOptions.value = false;
 }
@@ -47,7 +45,7 @@ onUnmounted(() => {
 <template>
     <div class="dropdown" ref="dropdownRef" @click="showOptions = !showOptions">
         <div>
-            <span>{{ optionSelected ? optionSelected : options[0].name }}</span>
+            <span>{{ options.find(option => option.value === selected)?.name || options[0]?.name }}</span>
             <span class="dropdown-arrow" :class="{ 'active': showOptions }">V</span>
         </div>
         <ul v-if="showOptions">
