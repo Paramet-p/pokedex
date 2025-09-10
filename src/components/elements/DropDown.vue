@@ -48,7 +48,7 @@ onUnmounted(() => {
     <div class="dropdown" ref="dropdownRef" @click="showOptions = !showOptions">
         <div>
             <span>{{ optionSelected ? optionSelected : options[0].name }}</span>
-            <span class="dropdown-arrow" :class="{ 'active': showOptions}">V</span>
+            <span class="dropdown-arrow" :class="{ 'active': showOptions }">V</span>
         </div>
         <ul v-if="showOptions">
             <li v-for="item, index in options" :key="index" @click.stop="selectOption(item)">{{ item.name }}</li>
@@ -71,7 +71,9 @@ onUnmounted(() => {
     padding: 0 10px;
     font-size: 1rem;
     cursor: pointer;
+    user-select: none;
 }
+
 .dropdown:hover {
     background-color: #282828;
 }
@@ -79,11 +81,12 @@ onUnmounted(() => {
 .dropdown-arrow {
     transition: transform 0.2s ease-out;
 }
+
 .dropdown-arrow.active {
     transform: rotate(180deg);
 }
 
-.dropdown div{
+.dropdown div {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -95,6 +98,7 @@ onUnmounted(() => {
     top: 100%;
     left: 0;
     width: v-bind(width);
+    max-height: 274px;
     background-color: #313131;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -112,5 +116,23 @@ onUnmounted(() => {
 
 .dropdown li:hover {
     background-color: #313131;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #616161;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #313131;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #282828;
 }
 </style>

@@ -17,7 +17,18 @@ const sortOptions = [
   { name: 'A-Z', value: 'a-z' },
   { name: 'Z-A', value: 'z-a' }
 ]
+const typeList = [
+  'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison',
+  'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark',
+  'steel', 'fairy'
+]
+const selectedTypes = ref([])
+const showAdvancedSearch = ref(false)
 const isLoadingPokemons = ref(true)
+const allAbilities = ref([{ name: 'All', value: 'all' }])
+const isLoadingAllAbilities = ref(false)
+const numberRangeStart = ref(1)
+const numberRangeEnd = ref(1025)
 const isLoadingpokemonPopup = ref(true)
 const isLoadingAbility = ref(true)
 const isLoadingEvolutions = ref(true)
@@ -95,6 +106,26 @@ const fetchAllPokemons = async () => {
   }
 }
 
+const fetchAllAbilities = async () => {
+  try {
+    isLoadingAllAbilities.value = true
+    const response = await fetch('https://pokeapi.co/api/v2/ability?limit=10000&offset=0')
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+    const data = await response.json()
+    let fetchedAbilities = data.results.map((ability) => {
+      return { name: capitalizedString(ability.name), value: ability.name }
+    })
+    fetchedAbilities.sort((a, b) => a.name.localeCompare(b.name))
+    allAbilities.value.push(...fetchedAbilities)
+  } catch (err) {
+    error.value = err.message
+  } finally {
+    isLoadingAllAbilities.value = false
+  }
+}
+
 const reSetIndex = () => {
   pokemons.value = []
   startIndex.value = 0
@@ -115,6 +146,14 @@ const loadMorePokemons = () => {
   startIndex.value += 12
   endIndex.value += 12
   loadPokemons()
+}
+
+const selectType = (type) => {
+  if (selectedTypes.value.includes(type)) {
+    selectedTypes.value = selectedTypes.value.filter(t => t !== type)
+  } else {
+    selectedTypes.value.push(type)
+  }
 }
 
 const showPokemonDetails = (pokemon) => {
@@ -259,9 +298,42 @@ fetchAllPokemons()
           <h4>Use the Advanced Search to explore Pokemon by type</h4>
         </div>
       </div>
-      <div class="search-advanced-header">
+      <!-- advanced search -->
+      <div class="search-advanced" :class="{ active: showAdvancedSearch }">
+        <div class="search-advanced-wrapper">
+          <!-- type filter -->
+          <div class="search-advanced-type">
+            <span style="margin-bottom: 0px;">Type</span>
+            <h4 v-for="(type, index) in typeList" :key="index" :class="`pokemon-type-${type}`"
+              style="position: relative; width: 140px; height: 30px;">
+              <div class="search-advanced-type-selector" :class="{ active: selectedTypes.includes(type) }"
+                @click="selectType(type)"></div>
+              {{ capitalizedString(type) }}
+            </h4>
+          </div>
+          <div>
+            <!-- ability filter -->
+            <div style="display: flex; flex-direction: column; margin-bottom: 20px;">
+              <span>Ability</span>
+              <DropDown :options="allAbilities" :selected="allAbilities[0]" width="100%" />
+            </div>
+            <!-- number range filter -->
+            <div style="display: flex; flex-direction: column;">
+              <span>Number Range</span>
+              <div class="number-range-input">
+                <input v-model="numberRangeStart" />
+                <span> - </span>
+                <input v-model="numberRangeEnd" />
+              </div>
+            </div>
+          </div>
+          <div class="group-button">
+            <button class="button-reset">Reset</button>
+            <button class="button-search">Search</button>
+          </div>
+        </div>
       </div>
-      <div class="search-advanced-footer">
+      <div class="search-advanced-footer" @click="showAdvancedSearch = !showAdvancedSearch; fetchAllAbilities()">
         <span>
           Show Advanced Search
         </span>
@@ -512,10 +584,114 @@ fetchAllPokemons()
   background-color: #da471b;
 }
 
-.search-advanced-header {
+.search-advanced {
+  display: flex;
+  justify-content: center;
   background-color: #616161;
   width: 100%;
   height: 40px;
+  transition: height 0.3s ease-out;
+  padding-top: 40px;
+  color: #ffffff;
+  overflow: hidden;
+  user-select: none;
+}
+
+.search-advanced.active {
+  height: 400px;
+  transition: height 0.3s ease-out;
+}
+
+.search-advanced-wrapper {
+  width: 860px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}
+
+.search-advanced-wrapper span {
+  grid-column: span 3;
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.search-advanced-type {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.search-advanced-type-selector {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.6);
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.search-advanced-type-selector.active {
+  background-color: transparent;
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.7);
+}
+
+.number-range-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.number-range-input input {
+  border: none;
+  border-radius: 5px;
+  height: 42px;
+  width: 90px;
+  padding-left: 10px;
+  font-size: 1rem;
+}
+
+.group-button {
+  display: flex;
+  justify-content: flex-end;
+  grid-column: span 2;
+  margin-bottom: 20px;
+}
+
+.button-reset {
+  background-color: #a4a4a4;
+  border: none;
+  color: white;
+  height: 46px;
+  padding: 0 26px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  margin-right: 10px;
+  transition: background-color 0.2s ease-out;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.button-reset:hover {
+  background-color: #8b8b8b;
+}
+
+.button-search {
+  background-color: #ee6b2f;
+  border: none;
+  color: white;
+  height: 46px;
+  padding: 0 26px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.2s ease-out;
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.button-search:hover {
+  background-color: #da471b;
 }
 
 .search-advanced-footer {
@@ -527,12 +703,15 @@ fetchAllPokemons()
   height: 20px;
   cursor: pointer;
 }
+
 .search-advanced-footer span {
   position: absolute;
   top: -10px;
   color: #ffffff;
   font-weight: 500;
+  user-select: none;
 }
+
 .search-advanced-footer::before {
   content: '';
   position: absolute;
@@ -542,6 +721,7 @@ fetchAllPokemons()
   background-color: #616161;
   border-radius: 0 0 0 20px;
 }
+
 .search-advanced-footer::after {
   content: '';
   position: absolute;
@@ -604,6 +784,7 @@ fetchAllPokemons()
   border-radius: 8px;
   padding: 10px;
   width: 200px;
+  user-select: none;
 }
 
 .pokemon-card:hover {
@@ -639,6 +820,7 @@ fetchAllPokemons()
 .pokemon-type-bug {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #719f3f;
   color: white;
   border-radius: 5px;
@@ -648,6 +830,7 @@ fetchAllPokemons()
 .pokemon-type-dragon {
   display: flex;
   justify-content: center;
+  align-items: center;
   background: linear-gradient(#53a4cf 50%, #f16e57 50%);
   color: white;
   border-radius: 5px;
@@ -657,6 +840,7 @@ fetchAllPokemons()
 .pokemon-type-fairy {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #fdb9e9;
   color: black;
   border-radius: 5px;
@@ -666,6 +850,7 @@ fetchAllPokemons()
 .pokemon-type-fire {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #fd7d24;
   color: white;
   border-radius: 5px;
@@ -675,6 +860,7 @@ fetchAllPokemons()
 .pokemon-type-ghost {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #7b62a3;
   color: white;
   border-radius: 5px;
@@ -684,6 +870,7 @@ fetchAllPokemons()
 .pokemon-type-ground {
   display: flex;
   justify-content: center;
+  align-items: center;
   background: linear-gradient(#f7de3f 50%, #ab9842 50%);
   color: black;
   border-radius: 5px;
@@ -703,6 +890,7 @@ fetchAllPokemons()
 .pokemon-type-psychic {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #f366b9;
   color: white;
   border-radius: 5px;
@@ -712,6 +900,7 @@ fetchAllPokemons()
 .pokemon-type-steel {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #9eb7b8;
   color: black;
   border-radius: 5px;
@@ -721,6 +910,7 @@ fetchAllPokemons()
 .pokemon-type-dark {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #707070;
   color: white;
   border-radius: 5px;
@@ -730,6 +920,7 @@ fetchAllPokemons()
 .pokemon-type-electric {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #eed535;
   color: black;
   border-radius: 5px;
@@ -739,6 +930,7 @@ fetchAllPokemons()
 .pokemon-type-fighting {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #d56723;
   color: white;
   border-radius: 5px;
@@ -748,6 +940,7 @@ fetchAllPokemons()
 .pokemon-type-flying {
   display: flex;
   justify-content: center;
+  align-items: center;
   background: linear-gradient(#3dc7ef 50%, #bdb9b8 50%);
   color: black;
   border-radius: 5px;
@@ -757,6 +950,7 @@ fetchAllPokemons()
 .pokemon-type-grass {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #9bcc50;
   color: black;
   border-radius: 5px;
@@ -766,6 +960,7 @@ fetchAllPokemons()
 .pokemon-type-ice {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #51c4e7;
   color: black;
   border-radius: 5px;
@@ -775,6 +970,7 @@ fetchAllPokemons()
 .pokemon-type-poison {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #b97fc8;
   color: white;
   border-radius: 5px;
@@ -784,6 +980,7 @@ fetchAllPokemons()
 .pokemon-type-rock {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #a38c21;
   color: white;
   border-radius: 5px;
@@ -793,6 +990,7 @@ fetchAllPokemons()
 .pokemon-type-water {
   display: flex;
   justify-content: center;
+  align-items: center;
   background-color: #4592c4;
   color: white;
   border-radius: 5px;
