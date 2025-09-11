@@ -5,6 +5,7 @@ import IconSearch from './components/icons/IconSearch.vue'
 import DropDown from './components/elements/DropDown.vue'
 
 const allPokemons = ref([])
+const allPokemonsDetails = ref([])
 const startIndex = ref(0)
 const endIndex = ref(12)
 const pokemons = ref([])
@@ -41,9 +42,12 @@ const selectedDetailsTab = ref('stats')
 const selectedPokemonEvolutions = ref(null)
 const selectedPokemonEvolutionsDetails = ref([])
 
+const pokemonCardContainer = ref(null)
+
 const statNames = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
 
 const loadPokemons = async () => {
+  console.log('Load Pokemons')
   try {
     isLoadingPokemons.value = true
     // filter data by search term
@@ -51,6 +55,17 @@ const loadPokemons = async () => {
     if (searchTerm.value.trim() !== '') {
       const search = searchTerm.value.toLowerCase().trim()
       filteredPokemons = allPokemons.value.filter(pokemon => pokemon.name.includes(search) || pokemon.id.toString().includes(search))
+    }
+    // filter data by advanced search
+    if (selectedTypes.value.length > 0) {
+      filteredPokemons = filteredPokemons.filter(pokemon => {
+        const pokemonData = allPokemonsDetails.value.find(p => p.name === pokemon.name)
+        if (pokemonData) {
+          const pokemonTypes = pokemonData.types.map(t => t.type.name)
+          return selectedTypes.value.every(type => pokemonTypes.includes(type))
+        }
+        return false
+      })
     }
     // sort data
     switch (sortOption.value) {
@@ -99,6 +114,15 @@ const fetchAllPokemons = async () => {
     allPokemons.value = data.results.map((pokemon, index) => {
       return { name: pokemon.name, id: index + 1, url: pokemon.url }
     })
+    const pokemonsDetailsPromises = allPokemons.value.map(pokemon => fetch(pokemon.url))
+    const pokemonsDetailsResponses = await Promise.all(pokemonsDetailsPromises)
+    for (const res of pokemonsDetailsResponses) {
+      if (!res.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const pokemonData = await res.json()
+      allPokemonsDetails.value.push(pokemonData)
+    }
     loadPokemons()
   } catch (err) {
     error.value = err.message
@@ -140,9 +164,34 @@ const reSetIndex = () => {
   endIndex.value = 12
 }
 
+const scrollToPokemonCards = (duration) => {
+  if (!pokemonCardContainer.value) return;
+
+  const startY = window.scrollY;
+  const endY = pokemonCardContainer.value.getBoundingClientRect().top + startY;
+  const distanceY = endY - startY;
+  let startTime = null;
+
+  const step = (currentTime) => {
+    if (startTime === null) startTime = currentTime;
+    const timeElapsed = currentTime - startTime;
+    const progress = Math.min(timeElapsed / duration, 1);
+    const easeOutCubic = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    
+    window.scrollTo(0, startY + distanceY * easeOutCubic);
+
+    if (timeElapsed < duration) {
+      window.requestAnimationFrame(step);
+    }
+  };
+
+  window.requestAnimationFrame(step);
+};
+
 const searchPokemons = () => {
   reSetIndex()
   loadPokemons()
+  scrollToPokemonCards(1000)
 }
 
 const sortPokemons = () => {
@@ -335,9 +384,10 @@ fetchAllPokemons()
               </div>
             </div>
           </div>
+          <!-- button group -->
           <div class="group-button">
             <button class="button-reset" @click="resetAdvancedSearch()">Reset</button>
-            <button class="button-search">Search</button>
+            <button class="button-search" @click="searchPokemons()">Search</button>
           </div>
         </div>
       </div>
@@ -355,7 +405,7 @@ fetchAllPokemons()
     </div>
     <!-- Pokemon List -->
     <div class="pokemon-list-wrapper">
-      <div class="pokemon-card-container">
+      <div class="pokemon-card-container" ref="pokemonCardContainer">
         <div class="pokemon-card" v-for="pokemon in pokemons" :key="pokemon.id" @click="showPokemonDetails(pokemon)">
           <div class="pokemon-image">
             <img :src="pokemon.sprites.other['official-artwork'].front_default" :alt="pokemon.name" height="140px"
